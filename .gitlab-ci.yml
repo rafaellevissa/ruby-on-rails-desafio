@@ -1,0 +1,31 @@
+stages:
+  - deploy
+
+deployToAws:
+  stage: deploy
+  image: alpine
+  only:
+    - main
+  script:
+    - apk add openssh
+    - apk add bash
+    - mkdir ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS_AWS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+    - eval $(ssh-agent -s)
+    - bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY_AWS")'
+    - ssh ubuntu@$SERVER_IP "sudo rm -rf back/" || true
+    - ssh ubuntu@$SERVER_IP "git clone -b main https://$GITLAB_USER:$GITLAB_TOKEN@gitlab.com/t1023/back.git"
+    - scp $ENV ubuntu@$SERVER_IP:back/.env
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml down" || true
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml build" || true
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml up --force-recreate -d" || true
+
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml exec app yarn --check-files" || true
+
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml exec app rake db:create" || true
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml exec app rails webpacker:install" || true
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml exec app rake db:migrate" || true
+    - ssh ubuntu@$SERVER_IP "docker-compose -f ./back/docker-compose.yml exec app rails rswag:specs:swaggerize" || true
+

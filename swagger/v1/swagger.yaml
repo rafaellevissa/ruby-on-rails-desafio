@@ -1,0 +1,129 @@
+---
+openapi: 3.0.1
+info:
+  title: API V1
+  version: v1
+paths:
+  "/api/v1/annotation":
+    get:
+      summary: list annotations
+      security:
+      - Bearer: {}
+      responses:
+        '200':
+          description: successful
+    post:
+      summary: create annotation
+      security:
+      - Bearer: {}
+      parameters: []
+      responses:
+        '200':
+          description: successful
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                lat:
+                  type: string
+                long:
+                  type: string
+                user_id:
+                  type: integer
+              required:
+              - content
+              - lat
+              - long
+              - user_id
+  "/api/v1/annotation/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: show annotation
+      security:
+      - Bearer: {}
+      responses:
+        '200':
+          description: successful
+    patch:
+      summary: update annotation
+      security:
+      - Bearer: {}
+      responses:
+        '200':
+          description: successful
+    put:
+      summary: update annotation
+      security:
+      - Bearer: {}
+      parameters: []
+      responses:
+        '200':
+          description: successful
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                lat:
+                  type: string
+                long:
+                  type: string
+                user_id:
+                  type: integer
+    delete:
+      summary: delete annotation
+      security:
+      - Bearer: {}
+      responses:
+        '200':
+          description: successful
+  "/api/v1/auth":
+    post:
+      summary: login authentication
+      parameters: []
+      responses:
+        '200':
+          description: successful
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+components:
+  securitySchemes:
+    Bearer:
+      description: JWT key necessary to use API calls
+      type: apiKey
+      name: authorization
+      in: header
+servers:
+- url: https://{defaultHost}
+  variables:
+    defaultProtocol:
+      default: https
+    defaultHost:
+      default: localhost
+- url: http://{defaultHost}
+  variables:
+    defaultProtocol:
+      default: http
+    defaultHost:
+      default: localhost
